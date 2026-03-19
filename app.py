@@ -6,7 +6,7 @@ from rag_engine import build_index, load_index, build_rag_chain, ask
 
 try:
     os.environ["OPENAI_API_KEY"] = st.secrets["OPENAI_API_KEY"]
-except:
+except Exception:
     from dotenv import load_dotenv
     load_dotenv()
 
@@ -19,7 +19,7 @@ if "messages" not in st.session_state:
 if "indexed" not in st.session_state:
     st.session_state.indexed = False
 
-with st.sidebar():
+with st.sidebar:
     st.header("Upload document")
     uploaded = st.file_uploader("Choose a PDF", type="pdf")
 
@@ -51,8 +51,8 @@ if question := st.chat_input("Ask something about your PDF..."):
         with st.chat_message("assistant"):
             with st.spinner("Thinking..."):
                 vectorstore = load_index()
-                chain       = build_rag_chain(vectorstore)
-                answer      = ask(chain, question)
+                chain = build_rag_chain(vectorstore)
+                answer = ask(chain, question)
             st.markdown(answer)
 
         st.session_state.messages.append(
