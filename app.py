@@ -21,8 +21,9 @@ if "indexed" not in st.session_state:
 
 with st.sidebar:
     st.header("Upload document")
-    uploaded = st.file_uploader("Choose a PDF", type="pdf")
-
+    uploaded = st.file_uploader("Choose a PDF", type="pdf", accept_multiple_files = True) # accept_multiple_files = True(additional argument to uplod multiple pdf
+'''
+# use for single pdf only
     if uploaded and st.button("Process PDF", type="primary"):
         with st.spinner("Reading and indexing your PDF..."):
             with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as f:
@@ -33,7 +34,23 @@ with st.sidebar:
         st.success(f"Done! Indexed {n_chunks} chunks.")
         st.session_state["indexed"] = True
         st.session_state["messages"] = []
+'''
 
+# use to upload ,multiple pdf
+if uploaded and st.button("Process PDFs", type="primary"):
+    with st.spinner("Indexing your PDFs..."):
+        tmp_paths = []
+        for file in uploaded:
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as f:
+                f.write(file.read())
+                tmp_paths.append(f.name)
+        n_chunks = build_index(tmp_paths)
+        for p in tmp_paths:
+            os.unlink(p)
+    st.success(f"Done! Indexed {n_chunks} chunks from {len(uploaded)} PDFs.")
+    st.session_state["indexed"] = True
+    st.session_state["messages"] = []
+    
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
