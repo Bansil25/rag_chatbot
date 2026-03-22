@@ -3,6 +3,7 @@ import os
 import tempfile
 import streamlit as st
 from rag_engine import build_index, load_index, build_rag_chain, ask
+from langchain_core.messages import HumanMessage, AIMessage
 
 try:
     os.environ["OPENAI_API_KEY"] = st.secrets["OPENAI_API_KEY"]
@@ -18,6 +19,9 @@ if "messages" not in st.session_state:
     st.session_state.messages = []
 if "indexed" not in st.session_state:
     st.session_state.indexed = False
+# AddED chat_history to session statE:
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = []
 
 with st.sidebar:
     st.header("Upload document")
@@ -75,3 +79,6 @@ if question := st.chat_input("Ask something about your PDF..."):
         st.session_state.messages.append(
             {"role": "assistant", "content": answer}
         )
+        # After getting the answer, this block will append to history
+        st.session_state.chat_history.append(HumanMessage(content=question))
+        st.session_state.chat_history.append(AIMessage(content=answer))
