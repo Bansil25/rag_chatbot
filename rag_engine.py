@@ -13,7 +13,8 @@ load_dotenv()
 
 INDEX_PATH = 'faiss_index'
 
-
+'''
+# USE TO UPLOAD SINGLE PDF ONLY
 def build_index(pdf_path: str):
     """Load PDF → split → embed → save FAISS index to disk."""
 
@@ -30,6 +31,25 @@ def build_index(pdf_path: str):
     vectorstore.save_local(INDEX_PATH)
 
     return len(chunks)
+'''
+
+# USE TO UPLOAD MULTIPLE PDF'S
+def build_index(pdf_paths: list):
+    """Accept a list of PDF paths, index all of them."""
+    all_chunks = []
+    splitter = RecursiveCharacterTextSplitter(
+        chunk_size=500, chunk_overlap=50
+    )
+    for path in pdf_paths:
+        loader = PyPDFLoader(path)
+        docs   = loader.load()
+        chunks = splitter.split_documents(docs)
+        all_chunks.extend(chunks)
+
+    embeddings  = OpenAIEmbeddings(model='text-embedding-3-small')
+    vectorstore = FAISS.from_documents(all_chunks, embeddings)
+    vectorstore.save_local(INDEX_PATH)
+    return len(all_chunks)
 
 
 def load_index():
@@ -45,13 +65,24 @@ def build_rag_chain(vectorstore):
     """Return a runnable RAG chain given a loaded vectorstore."""
     retriever = vectorstore.as_retriever(search_kwargs={'k': 3})
 
+    '''
+   # ADD SOURCE ONLY
     def doc_format(docs):
         parts = []
         for doc in docs:
             src = doc.metadata.get('source', 'unknown')
             parts.append(f'[Source: {src}]\n{doc.page_content}')
         return "\n\n".join(parts)
-
+    '''
+    # ADD SOURCE AND PAGE NUMBERS AS WELL
+    def doc_format(docs):
+    parts = []
+    for doc in docs:
+        src  = doc.metadata.get('source', 'unknown')
+        page = doc.metadata.get('page', '?')
+        parts.append(f'[Source: {src}, Page: {page + 1}]\n{doc.page_content}')
+    return "\n\n".join(parts)
+    
     prompt = ChatPromptTemplate.from_messages([
         ("system", """You are a helpful assistant that answers questions
 based ONLY on the provided document context.
