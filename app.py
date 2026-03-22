@@ -19,13 +19,19 @@ if "messages" not in st.session_state:
     st.session_state.messages = []
 if "indexed" not in st.session_state:
     st.session_state.indexed = False
-# AddED chat_history to session statE:
+    
+# Added chat_history to session state:
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
 with st.sidebar:
     st.header("Upload document")
     uploaded = st.file_uploader("Choose a PDF", type="pdf", accept_multiple_files = True) # accept_multiple_files = True(additional argument to uplod multiple pdf
+    st.divider() # st.rerun() forces Streamlit to immediately re-render the page — the chat history disappears instantly when the button is clicked.
+    if st.button("Clear chat"):
+        st.session_state.messages = []
+        st.session_state.chat_history = []
+        st.rerun()
 '''
 # use for single pdf only
     if uploaded and st.button("Process PDF", type="primary"):
